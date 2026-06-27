@@ -1,0 +1,1810 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MC Nations — Community Hub v5 (Mobile Ready)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-primary:#1a1b1e;--bg-secondary:#2b2d31;--bg-tertiary:#313338;
+  --bg-hover:#35373c;--bg-active:#404249;--bg-sidebar:#2b2d31;--bg-input:#383a40;
+  --text-primary:#dbdee1;--text-secondary:#949ba4;--text-muted:#5c5f66;--text-header:#f2f3f5;
+  --accent:#5865f2;--accent-hover:#4752c4;--accent-green:#23a55a;--accent-red:#f23f42;
+  --accent-gold:#f0b232;--accent-mc:#55a832;--accent-war:#ed4245;--accent-peace:#23a55a;
+  --border:#3f4147;--mention-bg:rgba(88,101,242,0.15);--radius:8px;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg-primary);color:var(--text-primary);height:100vh;overflow:hidden;display:flex;flex-direction:column}
+#auth-screen{position:fixed;inset:0;background:linear-gradient(135deg,#1a1b1e,#0e1116);display:flex;align-items:center;justify-content:center;z-index:999}
+.auth-box{background:var(--bg-secondary);border:1px solid var(--border);border-radius:16px;padding:2.5rem;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.auth-logo{display:flex;align-items:center;gap:12px;margin-bottom:1.5rem;justify-content:center}
+.auth-logo .logo-icon{width:48px;height:48px;background:var(--accent-mc);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px}
+.auth-logo h1{font-size:22px;font-weight:700;color:var(--text-header);letter-spacing:-.5px}
+.auth-logo p{font-size:12px;color:var(--text-secondary)}
+.auth-tabs{display:flex;background:var(--bg-primary);border-radius:var(--radius);padding:3px;margin-bottom:1.5rem}
+.auth-tab{flex:1;padding:8px 0;background:none;border:none;color:var(--text-secondary);font-family:'Inter',sans-serif;font-size:14px;font-weight:500;border-radius:6px;cursor:pointer;transition:all .2s}
+.auth-tab.active{background:var(--bg-active);color:var(--text-header)}
+.auth-form{display:flex;flex-direction:column;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px}
+.form-group input,.form-group select,.form-group textarea{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;color:var(--text-primary);font-family:'Inter',sans-serif;font-size:14px;outline:none;transition:border-color .2s;width:100%}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent)}
+.form-group textarea{resize:vertical;min-height:80px}
+.form-group select option{background:var(--bg-secondary)}
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:var(--radius);padding:12px;font-family:'Inter',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:background .2s;margin-top:4px}
+.btn-primary:hover{background:var(--accent-hover)}
+.auth-error{background:rgba(242,63,66,.15);border:1px solid var(--accent-red);border-radius:var(--radius);padding:10px 12px;color:#f23f42;font-size:13px;display:none}
+#app{display:none;height:100vh;flex-direction:row}
+.server-sidebar{width:72px;background:var(--bg-primary);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:8px;border-right:1px solid var(--border);overflow-y:auto}
+.server-icon{width:48px;height:48px;background:var(--accent-mc);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:border-radius .2s;position:relative}
+.server-icon:hover,.server-icon.active{border-radius:14px}
+.server-icon::before{content:'';position:absolute;left:-16px;width:8px;height:0;background:#fff;border-radius:0 4px 4px 0;transition:height .2s}
+.server-icon.active::before{height:40px}
+.channel-sidebar{width:240px;background:var(--bg-sidebar);display:flex;flex-direction:column;border-right:1px solid var(--border)}
+.server-header{padding:16px;border-bottom:1px solid var(--border);font-weight:700;font-size:15px;color:var(--text-header);display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.server-header:hover{background:var(--bg-hover)}
+.turn-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(88,101,242,.25);color:var(--accent)}
+.channels-list{flex:1;overflow-y:auto;padding:8px 0}
+.channel-category{padding:16px 8px 4px 16px;font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;justify-content:space-between}
+.channel-item{display:flex;align-items:center;gap:8px;padding:6px 8px 6px 16px;border-radius:6px;margin:1px 8px;cursor:pointer;color:var(--text-secondary);font-size:14px;transition:all .1s;position:relative}
+.channel-item:hover{background:var(--bg-hover);color:var(--text-primary)}
+.channel-item.active{background:var(--bg-active);color:var(--text-header)}
+.channel-icon{font-size:16px;flex-shrink:0}
+.user-panel{padding:8px;background:var(--bg-primary);border-top:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.user-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+.user-info{flex:1;min-width:0}
+.user-name{font-size:13px;font-weight:600;color:var(--text-header);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-tag{font-size:11px;color:var(--text-secondary)}
+.user-actions{display:flex;gap:4px}
+.icon-btn{width:28px;height:28px;background:none;border:none;color:var(--text-secondary);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .1s}
+.icon-btn:hover{background:var(--bg-hover);color:var(--text-header)}
+.main-area{flex:1;display:flex;flex-direction:column;background:var(--bg-tertiary);min-width:0}
+.chat-header{height:52px;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;background:var(--bg-tertiary);flex-shrink:0}
+.chat-header-name{font-weight:700;font-size:15px;color:var(--text-header)}
+.chat-header-desc{font-size:13px;color:var(--text-secondary);border-left:1px solid var(--border);padding-left:12px;margin-left:4px}
+.chat-header-actions{margin-left:auto;display:flex;gap:8px}
+.messages-area{flex:1;overflow-y:auto;padding:16px 0;display:flex;flex-direction:column}
+.messages-area::-webkit-scrollbar{width:8px}
+.messages-area::-webkit-scrollbar-track{background:#1e1f22}
+.messages-area::-webkit-scrollbar-thumb{background:var(--bg-active);border-radius:4px}
+.welcome-banner{padding:32px 16px 16px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.welcome-banner h2{font-size:28px;font-weight:800;color:var(--text-header);margin-bottom:8px}
+.welcome-banner p{color:var(--text-secondary);font-size:15px}
+.message-group{display:flex;gap:16px;padding:2px 16px;border-radius:4px;transition:background .05s}
+.message-group:hover{background:var(--bg-hover)}
+.message-group.first{padding-top:10px}
+.msg-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;flex-shrink:0;margin-top:2px}
+.msg-content{flex:1;min-width:0}
+.msg-header{display:flex;align-items:baseline;gap:8px;margin-bottom:2px;flex-wrap:wrap}
+.msg-author{font-size:15px;font-weight:600;color:var(--text-header)}
+.msg-nation-tag{font-size:11px;font-weight:600;padding:1px 6px;border-radius:4px;background:var(--bg-active)}
+.msg-admin-tag{font-size:11px;font-weight:600;padding:1px 6px;border-radius:4px;background:rgba(240,178,50,.2);color:var(--accent-gold)}
+.msg-time{font-size:11px;color:var(--text-muted)}
+.msg-text{font-size:15px;line-height:1.5;color:var(--text-primary);word-break:break-word;white-space:pre-wrap}
+.msg-text.ai-response{background:var(--mention-bg);border-left:3px solid var(--accent);padding:10px 12px;border-radius:0 var(--radius) var(--radius) 0;margin-top:4px}
+.msg-text.worldbuilder-response{background:rgba(240,178,50,.08);border-left:3px solid var(--accent-gold);padding:10px 12px;border-radius:0 var(--radius) var(--radius) 0;margin-top:4px}
+.msg-continuation{display:flex;gap:16px;padding:1px 16px;border-radius:4px;transition:background .05s}
+.msg-continuation:hover{background:var(--bg-hover)}
+.msg-continuation .spacer{width:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.input-area{padding:0 16px 20px;flex-shrink:0}
+.input-wrapper{background:var(--bg-input);border-radius:var(--radius);padding:0 16px;display:flex;align-items:center;gap:12px;border:1px solid var(--border)}
+.input-wrapper:focus-within{border-color:var(--accent)}
+.msg-input{flex:1;background:none;border:none;outline:none;color:var(--text-primary);font-family:'Inter',sans-serif;font-size:15px;padding:12px 0;resize:none}
+.msg-input::placeholder{color:var(--text-muted)}
+.send-btn{background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:20px;transition:color .1s;padding:4px;border-radius:4px}
+.send-btn:hover{color:var(--accent)}
+.ai-typing{display:none;padding:8px 16px;color:var(--text-secondary);font-size:13px;font-style:italic}
+.members-sidebar{width:220px;background:var(--bg-secondary);border-left:1px solid var(--border);padding:16px 0;overflow-y:auto;flex-shrink:0}
+.members-category{padding:16px 12px 4px;font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px}
+.member-item{display:flex;align-items:center;gap:10px;padding:5px 12px;border-radius:6px;margin:1px 8px;cursor:pointer;transition:background .1s}
+.member-item:hover{background:var(--bg-hover)}
+.member-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;position:relative}
+.member-status{position:absolute;bottom:-1px;right:-1px;width:10px;height:10px;border-radius:50%;border:2px solid var(--bg-secondary)}
+.status-online{background:var(--accent-green)}
+.member-name{font-size:13px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.member-nation{font-size:11px;color:var(--text-muted)}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:center;justify-content:center}
+.modal-box{background:var(--bg-secondary);border:1px solid var(--border);border-radius:16px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.modal-box.sm{max-width:520px}
+.modal-box.lg{max-width:820px}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg-secondary);z-index:1}
+.modal-header h2{font-size:18px;font-weight:700;color:var(--text-header)}
+.modal-tabs{display:flex;gap:4px;padding:12px 24px 0;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.modal-tab{padding:8px 14px;background:none;border:none;color:var(--text-secondary);font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.modal-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.modal-content{padding:20px 24px}
+.modal-section{display:none}
+.modal-section.active{display:block}
+.close-btn{background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:18px;line-height:1;padding:4px;border-radius:4px;transition:all .1s}
+.close-btn:hover{color:var(--text-header);background:var(--bg-hover)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;padding:8px 12px;background:var(--bg-primary);color:var(--text-secondary);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text-primary);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg-hover)}
+.badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;display:inline-block}
+.badge-admin{background:rgba(240,178,50,.2);color:var(--accent-gold)}
+.badge-user{background:var(--bg-active);color:var(--text-secondary)}
+.badge-war{background:rgba(237,66,69,.2);color:var(--accent-red)}
+.badge-peace{background:rgba(35,165,90,.2);color:var(--accent-green)}
+.badge-alliance{background:rgba(88,101,242,.2);color:var(--accent)}
+.badge-dispute{background:rgba(240,178,50,.2);color:var(--accent-gold)}
+.access-tag{font-size:12px;padding:2px 8px;background:var(--bg-active);border-radius:4px;color:var(--text-secondary);cursor:pointer;transition:all .2s}
+.access-tag.everyone{background:rgba(35,165,90,.2);color:var(--accent-green)}
+.btn-sm{padding:8px 14px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s;white-space:nowrap}
+.btn-sm:hover{background:var(--accent-hover)}
+.btn-danger{background:rgba(242,63,66,.2);color:var(--accent-red);border:1px solid var(--accent-red);padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s}
+.btn-danger:hover{background:var(--accent-red);color:#fff}
+.btn-success{background:rgba(35,165,90,.2);color:var(--accent-green);border:1px solid var(--accent-green);padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s}
+.btn-success:hover{background:var(--accent-green);color:#fff}
+.btn-gold{background:rgba(240,178,50,.2);color:var(--accent-gold);border:1px solid var(--accent-gold);padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s}
+.btn-gold:hover{background:var(--accent-gold);color:#1a1b1e}
+.form-row{display:flex;gap:10px;align-items:flex-end;margin-bottom:16px;flex-wrap:wrap}
+.form-row .form-group{flex:1;min-width:140px}
+.card-section{background:var(--bg-tertiary);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.card-section h3{font-size:13px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.action-type-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+.action-type-btn{padding:12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg-tertiary);color:var(--text-secondary);font-family:'Inter',sans-serif;font-size:13px;cursor:pointer;transition:all .2s;text-align:left}
+.action-type-btn:hover{border-color:var(--accent);color:var(--text-primary)}
+.action-type-btn.selected{border-color:var(--accent);background:var(--mention-bg);color:var(--accent)}
+.action-type-btn .atype-icon{font-size:20px;display:block;margin-bottom:4px}
+.action-type-btn .atype-label{font-weight:600;display:block}
+.action-type-btn .atype-desc{font-size:11px;color:var(--text-muted);display:block;margin-top:2px}
+.battle-card{background:var(--bg-tertiary);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.battle-card-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.battle-card h4{font-size:14px;font-weight:700;color:var(--text-header)}
+.battle-card .meta{font-size:12px;color:var(--text-muted)}
+.battle-tag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px}
+.map-ver-card{background:var(--bg-tertiary);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.map-ver-num{width:40px;height:40px;border-radius:var(--radius);background:var(--mention-bg);color:var(--accent);font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.map-ver-info{flex:1}
+.map-ver-title{font-size:14px;font-weight:600;color:var(--text-header)}
+.map-ver-meta{font-size:12px;color:var(--text-muted);margin-top:2px}
+.turn-panel{background:var(--bg-tertiary);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.turn-info{font-size:13px;color:var(--text-secondary)}
+.turn-info strong{color:var(--accent);font-size:14px}
+.turn-actions{margin-left:auto;display:flex;gap:8px}
+.notification{position:fixed;bottom:24px;right:24px;background:var(--bg-secondary);border:1px solid var(--accent);border-radius:var(--radius);padding:12px 16px;font-size:14px;color:var(--text-primary);z-index:9999;display:none;max-width:320px}
+.wb-output{background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-size:13px;line-height:1.7;color:var(--text-primary);white-space:pre-wrap;min-height:120px;font-family:'JetBrains Mono',monospace;max-height:400px;overflow-y:auto}
+.wb-structured{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.wb-block{background:var(--bg-tertiary);border:1px solid var(--border);border-radius:var(--radius);padding:12px}
+.wb-block h5{font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.wb-block p{font-size:13px;color:var(--text-primary);line-height:1.6}
+.checklist{list-style:none;padding:0}
+.checklist li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px;color:var(--text-secondary);cursor:pointer}
+.checklist li:last-child{border-bottom:none}
+.checklist li.done{color:var(--accent-green)}
+.check-icon{font-size:16px;flex-shrink:0}
+/* ════════════════════════════════════════════════
+   RESPONSIVE / MOBILE
+   ════════════════════════════════════════════════ */
+
+/* Bottoni hamburger nel header, visibili solo su mobile */
+.mobile-menu-btn{display:none;background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:20px;padding:4px 8px;border-radius:6px;transition:all .1s;flex-shrink:0}
+.mobile-menu-btn:hover{background:var(--bg-hover);color:var(--text-header)}
+
+/* Overlay scuro dietro i drawer mobile */
+.mobile-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:90}
+.mobile-backdrop.show{display:block}
+
+@media (max-width: 860px){
+  body{ overflow:hidden; }
+  #app{ position:relative; overflow:hidden; }
+
+  /* Nasconde la colonna server (icona singola), inutile su mobile */
+  .server-sidebar{ display:none; }
+
+  /* Channel sidebar diventa un drawer a scomparsa da sinistra */
+  .channel-sidebar{
+    position:fixed; top:0; left:0; bottom:0;
+    width:78vw; max-width:300px;
+    z-index:100;
+    transform:translateX(-100%);
+    transition:transform .25s ease;
+    box-shadow:4px 0 24px rgba(0,0,0,.4);
+  }
+  .channel-sidebar.open{ transform:translateX(0); }
+
+  /* Members sidebar diventa un drawer a scomparsa da destra */
+  .members-sidebar{
+    position:fixed; top:0; right:0; bottom:0;
+    width:78vw; max-width:300px;
+    z-index:100;
+    transform:translateX(100%);
+    transition:transform .25s ease;
+    box-shadow:-4px 0 24px rgba(0,0,0,.4);
+  }
+  .members-sidebar.open{ transform:translateX(0); }
+
+  /* Main area occupa tutto lo schermo */
+  .main-area{ width:100vw; }
+
+  /* Mostra i bottoni hamburger */
+  .mobile-menu-btn{ display:flex; align-items:center; justify-content:center; }
+
+  /* Header più compatto, nomi canale troncati */
+  .chat-header{ padding:0 8px; gap:8px; }
+  .chat-header-name{ font-size:14px; max-width:40vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .chat-header-desc{ display:none; } /* descrizione canale nascosta per risparmiare spazio */
+  .chat-header-actions{ gap:2px; }
+
+  /* Turn panel: stack verticale compatto */
+  .turn-panel{ padding:8px 10px; gap:8px; }
+  .turn-info{ font-size:12px; }
+  .turn-actions{ width:100%; margin-left:0; }
+  .turn-actions .btn-sm{ flex:1; }
+
+  /* Messaggi: meno padding laterale, font leggermente più piccolo */
+  .message-group, .msg-continuation{ padding-left:10px; padding-right:10px; gap:10px; }
+  .msg-avatar{ width:34px; height:34px; font-size:14px; }
+  .msg-continuation .spacer{ width:34px; }
+  .msg-text{ font-size:14px; }
+  .msg-author{ font-size:14px; }
+  .welcome-banner{ padding:20px 10px 12px; }
+  .welcome-banner h2{ font-size:22px; }
+
+  /* Input area: meno padding, font 16px per evitare zoom automatico iOS */
+  .input-area{ padding:0 8px 12px; }
+  .msg-input{ font-size:16px; }
+
+  /* Modali quasi a schermo intero */
+  .modal-box{ max-width:96vw; max-height:92vh; }
+  .modal-box.lg{ max-width:96vw; }
+  .modal-content{ padding:14px 16px; }
+  .modal-header{ padding:14px 16px; }
+
+  /* Tabs admin scrollabili orizzontalmente */
+  .modal-tabs{ overflow-x:auto; -webkit-overflow-scrolling:touch; flex-wrap:nowrap; padding:10px 16px 0; }
+  .modal-tab{ flex-shrink:0; padding:8px 12px; font-size:12px; }
+
+  /* Form rows: stack verticale */
+  .form-row{ flex-direction:column; align-items:stretch; }
+  .form-row .form-group{ min-width:0; }
+
+  /* Action type grid: 1 colonna su schermi molto piccoli */
+  .action-type-grid{ grid-template-columns:1fr 1fr; gap:6px; }
+
+  /* wb-structured: 1 colonna */
+  .wb-structured{ grid-template-columns:1fr; }
+
+  /* Tabelle: scroll orizzontale già gestito da .table-wrap, ma riduciamo font */
+  table{ font-size:12px; }
+  th, td{ padding:6px 8px; }
+
+  /* Notifica: full width in basso */
+  .notification{ left:12px; right:12px; bottom:12px; max-width:none; }
+}
+
+@media (max-width: 420px){
+  .chat-header-name{ max-width:32vw; }
+  .action-type-grid{ grid-template-columns:1fr; }
+  .msg-avatar{ width:30px; height:30px; font-size:13px; }
+  .msg-continuation .spacer{ width:30px; }
+}
+
+
+</style>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import {
+    getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
+    collection, addDoc, onSnapshot, query, orderBy, serverTimestamp,
+    enableIndexedDbPersistence
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDM93iCiVyJyjsvjoFNhiNeK9FVwhOONqg",
+    authDomain: "minecraftprova-2d42b.firebaseapp.com",
+    projectId: "minecraftprova-2d42b",
+    storageBucket: "minecraftprova-2d42b.firebasestorage.app",
+    messagingSenderId: "818372230635",
+    appId: "1:818372230635:web:47236a6ddae335c5352dae",
+    measurementId: "G-6H7NR8KED8"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const dbFS = getFirestore(app);
+
+  // Esponi tutto su window per usarlo dal vecchio script "classico"
+  window.fb = {
+    db: dbFS,
+    doc, getDoc, setDoc, updateDoc, deleteDoc,
+    collection, addDoc, onSnapshot, query, orderBy, serverTimestamp
+  };
+
+  // Segnala che Firebase è pronto
+  window.dispatchEvent(new Event('firebase-ready'));
+</script>
+</head>
+<body>
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="logo-icon">🌍</div>
+      <div><h1>MC Nations</h1><p>Community Hub v2</p></div>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Accedi</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">Registrati</button>
+    </div>
+    <div class="auth-form">
+      <div class="form-group"><label>Nome Utente</label><input type="text" id="auth-username" placeholder="Il tuo username" autocomplete="username"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="auth-password" placeholder="La tua password" autocomplete="current-password"></div>
+      <div class="auth-error" id="auth-error"></div>
+      <button class="btn-primary" onclick="handleAuth()" id="auth-submit-btn">Accedi</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="server-sidebar">
+    <div class="server-icon active" title="MC Nations">🌍</div>
+  </div>
+
+  <!-- Backdrop mobile per i drawer -->
+  <div class="mobile-backdrop" id="channel-backdrop" onclick="closeMobileDrawer('channel')"></div>
+  <div class="mobile-backdrop" id="members-backdrop" onclick="closeMobileDrawer('members')"></div>
+
+  <div class="channel-sidebar" id="channel-sidebar">
+    <div class="server-header">
+      <span>⚔️ MC Nations</span>
+      <span class="turn-badge" id="turn-badge">T1</span>
+    </div>
+    <div class="channels-list" id="channels-list"></div>
+    <div class="user-panel">
+      <div class="user-avatar" id="cur-avatar"></div>
+      <div class="user-info">
+        <div class="user-name" id="cur-name"></div>
+        <div class="user-tag" id="cur-tag">Online</div>
+      </div>
+      <div class="user-actions">
+        <button class="icon-btn" id="admin-btn" onclick="openAdmin()" title="Pannello Admin" style="display:none">⚙️</button>
+        <button class="icon-btn" onclick="logout()" title="Esci">🚪</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-area">
+    <div class="chat-header">
+      <button class="mobile-menu-btn" onclick="toggleMobileDrawer('channel')" title="Canali">☰</button>
+      <span id="header-icon" style="font-size:20px;color:var(--text-secondary)">#</span>
+      <span class="chat-header-name" id="header-name">—</span>
+      <span class="chat-header-desc" id="header-desc"></span>
+      <div class="chat-header-actions">
+        <button class="icon-btn" id="action-submit-btn" onclick="openActionForm()" title="Invia Azione di Turno" style="display:none">⚔️</button>
+        <button class="icon-btn" id="battle-btn" onclick="openBattleLog()" title="Log Battaglie" style="display:none">🗡️</button>
+        <button class="mobile-menu-btn" onclick="toggleMobileDrawer('members')" title="Membri">👥</button>
+      </div>
+    </div>
+    <div class="turn-panel" id="turn-panel" style="display:none">
+      <div class="turn-info">Turno attivo: <strong id="tp-turn">1</strong></div>
+      <div class="turn-info">Durata: <strong id="tp-duration">48h</strong></div>
+      <div class="turn-info">Scadenza: <strong id="tp-deadline">—</strong></div>
+      <div class="turn-info" id="ai-quota-info" style="display:none">🤖 Messaggi AI oggi: <strong id="ai-quota-text">—</strong></div>
+      <div class="turn-actions">
+        <button class="btn-sm" onclick="openActionForm()">⚔️ Invia Azione</button>
+      </div>
+    </div>
+    <div class="messages-area" id="messages-area">
+      <div class="welcome-banner" id="welcome-banner">
+        <h2 id="welcome-title">Benvenuto!</h2>
+        <p id="welcome-desc">Seleziona un canale.</p>
+      </div>
+    </div>
+    <div class="ai-typing" id="ai-typing">🤖 L'AI sta elaborando...</div>
+    <div class="input-area">
+      <div class="input-wrapper">
+        <textarea class="msg-input" id="msg-input" rows="1" placeholder="Scrivi un messaggio..." onkeydown="handleMsgKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="members-sidebar" id="members-sidebar"></div>
+</div>
+
+<!-- MODAL: AZIONE TURNO -->
+<div class="overlay" id="action-overlay">
+  <div class="modal-box sm">
+    <div class="modal-header">
+      <h2>⚔️ Invia Azione — Turno <span id="action-turn-num">1</span></h2>
+      <button class="close-btn" onclick="closeOverlay('action-overlay')">✕</button>
+    </div>
+    <div class="modal-content">
+      <div class="form-group" style="margin-bottom:14px">
+        <label>Tipo di Azione</label>
+        <div class="action-type-grid">
+          <button class="action-type-btn" onclick="selectActionType('militare',this)"><span class="atype-icon">⚔️</span><span class="atype-label">Militare</span><span class="atype-desc">Attacchi, truppe, difesa</span></button>
+          <button class="action-type-btn" onclick="selectActionType('diplomatica',this)"><span class="atype-icon">🤝</span><span class="atype-label">Diplomatica</span><span class="atype-desc">Alleanze, trattati, pace</span></button>
+          <button class="action-type-btn" onclick="selectActionType('economica',this)"><span class="atype-icon">💰</span><span class="atype-label">Economica</span><span class="atype-desc">Commercio, risorse</span></button>
+          <button class="action-type-btn" onclick="selectActionType('costruzione',this)"><span class="atype-icon">🏗️</span><span class="atype-label">Costruzione</span><span class="atype-desc">Edifici, infrastrutture</span></button>
+        </div>
+      </div>
+      <input type="hidden" id="action-type-val" value="">
+      <div class="form-group" style="margin-bottom:12px"><label>Descrizione Azione</label><textarea id="action-desc" placeholder="Descrivi cosa intendi fare o cosa hai fatto..."></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Coordinate (se applicabile)</label><input type="text" id="action-coords" placeholder="es. X:120 Z:-340"></div>
+        <div class="form-group"><label>Risorse Impegnate</label><input type="text" id="action-resources" placeholder="es. 500 oro, 20 soldati"></div>
+      </div>
+      <div class="form-group" style="margin-bottom:16px"><label>Note aggiuntive</label><input type="text" id="action-notes" placeholder="Dettagli extra..."></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn-danger" onclick="closeOverlay('action-overlay')">Annulla</button>
+        <button class="btn-primary" onclick="submitAction()" style="margin:0;padding:10px 24px">Invia Azione</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: LOG BATTAGLIE -->
+<div class="overlay" id="battle-overlay">
+  <div class="modal-box sm">
+    <div class="modal-header">
+      <h2>🗡️ Report Evento di Battaglia</h2>
+      <button class="close-btn" onclick="closeOverlay('battle-overlay')">✕</button>
+    </div>
+    <div class="modal-content">
+      <div class="card-section">
+        <h3>Nuovo Evento</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Nazione Attaccante</label><input type="text" id="battle-attacker" placeholder="es. Italia 🇮🇹"></div>
+          <div class="form-group"><label>Nazione Difensore</label><input type="text" id="battle-defender" placeholder="es. Francia 🇫🇷"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Coordinate</label><input type="text" id="battle-coords" placeholder="X:… Z:…"></div>
+          <div class="form-group"><label>Scala</label>
+            <select id="battle-scale">
+              <option value="scaramuccia">🔸 Scaramuccia</option>
+              <option value="impegno">🔶 Impegno Significativo</option>
+              <option value="battaglia">🔴 Battaglia Principale</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:12px"><label>Infrastrutture Distrutte</label><input type="text" id="battle-destruction" placeholder="es. fortezza nord, deposito rifornimenti"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Risultato</label>
+            <select id="battle-result">
+              <option value="attaccante">Attaccante ha tenuto</option>
+              <option value="difensore">Difensore ha tenuto</option>
+              <option value="conteso">Conteso</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Screenshot allegato?</label>
+            <select id="battle-screenshot">
+              <option value="si">✅ Sì</option>
+              <option value="no">❌ No</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:16px"><label>Note</label><textarea id="battle-notes" placeholder="Descrizione libera della battaglia..." style="min-height:60px"></textarea></div>
+        <button class="btn-primary" onclick="submitBattle()" style="margin:0;width:100%">📋 Registra Evento</button>
+      </div>
+      <div id="battle-log-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: WORLDBUILDER AI -->
+<div class="overlay" id="wb-overlay">
+  <div class="modal-box lg">
+    <div class="modal-header">
+      <h2>🌐 Worldbuilder AI — Risoluzione Turno</h2>
+      <button class="close-btn" onclick="closeOverlay('wb-overlay')">✕</button>
+    </div>
+    <div class="modal-content">
+      <div class="card-section">
+        <h3>Contesto Turno da inviare all'AI</h3>
+        <div class="form-group" style="margin-bottom:12px"><label>Prompt aggiuntivo / note per il worldbuilder</label><textarea id="wb-extra" placeholder="Es. ricorda che l'Italia ha dichiarato guerra nel turno precedente..." style="min-height:60px"></textarea></div>
+        <button class="btn-primary" onclick="runWorldbuilder()" style="margin:0">🤖 Elabora Turno con AI</button>
+      </div>
+      <div id="wb-result-area" style="display:none">
+        <h3 style="font-size:13px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Output Worldbuilder</h3>
+        <div class="wb-output" id="wb-output"></div>
+        <div class="wb-structured" id="wb-structured"></div>
+        <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+          <button class="btn-sm" onclick="applyWBToAnnouncement()">📢 Pubblica come Annuncio</button>
+          <button class="btn-gold" onclick="advanceTurn()">⏭️ Avanza al Turno Successivo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ADMIN PANEL -->
+<div class="overlay" id="admin-overlay">
+  <div class="modal-box lg">
+    <div class="modal-header">
+      <h2>⚙️ Pannello Amministratore</h2>
+      <button class="close-btn" onclick="closeOverlay('admin-overlay')">✕</button>
+    </div>
+    <div class="modal-tabs">
+      <button class="modal-tab active" onclick="switchAdminTab('users')">👥 Utenti</button>
+      <button class="modal-tab" onclick="switchAdminTab('channels')">📋 Canali</button>
+      <button class="modal-tab" onclick="switchAdminTab('nations')">🗺️ Nazioni DB</button>
+      <button class="modal-tab" onclick="switchAdminTab('turns')">⏱️ Turni</button>
+      <button class="modal-tab" onclick="switchAdminTab('ailimit')">🤖 Limite AI</button>
+      <button class="modal-tab" onclick="switchAdminTab('mapver')">🗾 Mappa</button>
+      <button class="modal-tab" onclick="switchAdminTab('admins')">👑 Admin</button>
+      <button class="modal-tab" onclick="switchAdminTab('launch')">🚀 Lancio</button>
+    </div>
+    <div class="modal-content">
+
+      <div class="modal-section active" id="tab-users">
+        <div class="table-wrap">
+          <table><thead><tr><th>Utente</th><th>Ruolo</th><th>Nazione</th><th>Accesso Canali</th><th>Azioni</th></tr></thead>
+          <tbody id="users-tbody"></tbody></table>
+        </div>
+      </div>
+
+      <div class="modal-section" id="tab-channels">
+        <div class="card-section">
+          <div class="form-row">
+            <div class="form-group"><label>Nome</label><input type="text" id="new-ch-name" placeholder="es. diplomazia"></div>
+            <div class="form-group"><label>Descrizione</label><input type="text" id="new-ch-desc" placeholder="es. Trattati e accordi"></div>
+            <div class="form-group" style="max-width:130px"><label>Tipo</label>
+              <select id="new-ch-type"><option value="public">🌐 Pubblico</option><option value="private">🔒 Privato</option></select>
+            </div>
+            <button class="btn-sm" onclick="addChannel()">+ Aggiungi</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table><thead><tr><th>Canale</th><th>Tipo</th><th>Descrizione</th><th>Azioni</th></tr></thead>
+          <tbody id="channels-tbody"></tbody></table>
+        </div>
+      </div>
+
+      <div class="modal-section" id="tab-nations">
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">Database di stato delle nazioni — la memoria condivisa del worldbuilder. Aggiorna dopo ogni turno.</p>
+        <div class="card-section">
+          <h3>Aggiungi / Aggiorna Nazione</h3>
+          <div class="form-row">
+            <div class="form-group"><label>Nome Nazione</label><input type="text" id="nd-name" placeholder="es. Italia 🇮🇹"></div>
+            <div class="form-group"><label>Tipo Governo</label><input type="text" id="nd-gov" placeholder="es. Repubblica"></div>
+            <div class="form-group"><label>Popolazione</label><input type="text" id="nd-pop" placeholder="es. 5.000.000"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Risorse Principali</label><input type="text" id="nd-res" placeholder="es. grano, ferro, oro"></div>
+            <div class="form-group"><label>Territorio (regioni)</label><input type="text" id="nd-terr" placeholder="es. Penisola Italiana, Sicilia"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Alleanze</label><input type="text" id="nd-ally" placeholder="es. Francia, Spagna"></div>
+            <div class="form-group"><label>In Guerra con</label><input type="text" id="nd-war" placeholder="es. Germania"></div>
+            <div class="form-group"><label>Stato</label>
+              <select id="nd-status"><option value="stabile">✅ Stabile</option><option value="guerra">⚔️ In Guerra</option><option value="crisi">⚠️ In Crisi</option><option value="inattiva">💤 Inattiva</option></select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:12px"><label>Note Storiche</label><textarea id="nd-notes" placeholder="Avvenimenti recenti, accordi in corso..." style="min-height:60px"></textarea></div>
+          <button class="btn-sm" onclick="saveNationDB()">💾 Salva Nazione</button>
+        </div>
+        <div class="table-wrap">
+          <table><thead><tr><th>Nazione</th><th>Governo</th><th>Stato</th><th>Alleanze</th><th>Guerra</th><th>Azioni</th></tr></thead>
+          <tbody id="nations-tbody"></tbody></table>
+        </div>
+      </div>
+
+      <div class="modal-section" id="tab-turns">
+        <div class="card-section">
+          <h3>Configurazione Turni</h3>
+          <div class="form-row">
+            <div class="form-group"><label>Turno Corrente</label><input type="number" id="turn-current" min="1" value="1"></div>
+            <div class="form-group"><label>Durata Turno</label>
+              <select id="turn-duration">
+                <option value="24">24 ore</option>
+                <option value="48" selected>48 ore</option>
+                <option value="72">72 ore</option>
+                <option value="168">1 settimana</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Data Inizio Turno</label><input type="datetime-local" id="turn-start"></div>
+          </div>
+          <button class="btn-sm" onclick="saveTurnConfig()">💾 Salva Configurazione</button>
+        </div>
+        <div class="card-section">
+          <h3>Azioni Ricevute questo Turno</h3>
+          <div id="turn-actions-list"></div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn-gold" onclick="openWorldbuilder()">🌐 Avvia Worldbuilder AI</button>
+          <button class="btn-success" onclick="advanceTurn()">⏭️ Avanza Turno</button>
+        </div>
+      </div>
+
+      <div class="modal-section" id="tab-ailimit">
+        <div class="card-section">
+          <h3>Limite Messaggi AI Giornaliero</h3>
+          <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">Numero massimo di messaggi che ogni giocatore (non admin) può inviare all'Assistente AI personale ogni giorno. Il contatore si azzera automaticamente ogni giorno alle 23:59. Gli admin non sono soggetti a questo limite.</p>
+          <div class="form-row">
+            <div class="form-group" style="max-width:160px"><label>Limite giornaliero</label><input type="number" id="ai-limit-input" min="0" value="10"></div>
+            <button class="btn-sm" onclick="saveAiLimitConfig()">💾 Salva Limite</button>
+          </div>
+        </div>
+        <div class="card-section">
+          <h3>Utilizzo Odierno per Giocatore</h3>
+          <div class="table-wrap">
+            <table><thead><tr><th>Utente</th><th>Messaggi usati oggi</th><th>Azioni</th></tr></thead>
+            <tbody id="ai-usage-tbody"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-section" id="tab-mapver">
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">Tieni traccia delle versioni della mappa per ogni turno. Ogni versione corrisponde a un PNG della mappa.</p>
+        <div class="card-section">
+          <h3>Registra Versione Mappa</h3>
+          <div class="form-row">
+            <div class="form-group"><label>Turno di riferimento</label><input type="number" id="mv-turn" min="1" value="1"></div>
+            <div class="form-group"><label>Nome file</label><input type="text" id="mv-file" placeholder="mappa_turno_001.png"></div>
+          </div>
+          <div class="form-group" style="margin-bottom:12px"><label>Cambiamenti territoriali</label><textarea id="mv-changes" placeholder="es. L'Italia acquisisce la Corsica. La Francia perde la Normandia..." style="min-height:70px"></textarea></div>
+          <button class="btn-sm" onclick="saveMapVersion()">🗾 Salva Versione</button>
+        </div>
+        <div id="map-versions-list"></div>
+      </div>
+
+      <div class="modal-section" id="tab-admins">
+        <div class="card-section">
+          <div class="form-row">
+            <div class="form-group"><label>Promuovi Utente ad Admin</label><select id="promote-select"></select></div>
+            <button class="btn-sm" onclick="promoteUser()">👑 Promuovi</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table><thead><tr><th>Admin</th><th>Azioni</th></tr></thead>
+          <tbody id="admins-tbody"></tbody></table>
+        </div>
+      </div>
+
+      <div class="modal-section" id="tab-launch">
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">Checklist pre-lancio — clicca ogni elemento per spuntarlo prima di iniziare il primo turno pubblico.</p>
+        <ul class="checklist" id="launch-checklist"></ul>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="notification" id="notification"></div>
+
+<script>
+// ════════════════════════════════════════════════
+//  CONFIGURAZIONE PROXY AI (Cloudflare Worker)
+// ════════════════════════════════════════════════
+// Sostituisci questo URL con quello del tuo Worker Cloudflare
+// (lo trovi nella dashboard Cloudflare dopo il deploy, es:
+//  https://mc-nations-ai-proxy.TUO-USERNAME.workers.dev)
+const AI_PROXY_URL = "https://mc-nations-ai-proxy.lollo-sgreccia-40b.workers.dev";
+
+// ════════════════════════════════════════════════
+//  FIREBASE WRAPPER — attende che window.fb sia pronto
+// ════════════════════════════════════════════════
+let fb = null;
+let fbReady = new Promise(resolve => {
+  if (window.fb) { fb = window.fb; resolve(); }
+  else window.addEventListener('firebase-ready', () => { fb = window.fb; resolve(); });
+});
+
+// ════════════════════════════════════════════════
+//  STATE LOCALE (cache reattiva, sincronizzata via onSnapshot)
+// ════════════════════════════════════════════════
+let db = {
+  users: {},
+  channels: [],
+  nationsDB: [],
+  turnConfig: { current:1, duration:48, startISO: new Date().toISOString() },
+  turnActions: [],
+  battleLog: [],
+  mapVersions: [],
+  launchChecklist: [],
+  aiLimitConfig: { dailyLimit: 10 },
+  aiUsage: {}
+};
+
+let currentUser = null;
+let currentChannel = null;
+let authMode = 'login';
+let activeAdminTab = 'users';
+let selectedActionType = '';
+
+// Listener attivi da scollegare quando si cambia canale
+let activeMessageUnsub = null;
+let activeAiUsageUnsub = null;
+
+const DEFAULT_CHANNELS = [
+  { id:'generale',   name:'generale',   desc:'Chat pubblica per tutti', type:'public', icon:'#' },
+  { id:'notizie',    name:'notizie',    desc:'Annunci e aggiornamenti turno', type:'public', icon:'📢' },
+  { id:'diplomazia', name:'diplomazia', desc:'Trattati e accordi', type:'public', icon:'🤝' },
+  { id:'guerra',     name:'guerra',     desc:'Dichiarazioni e conflitti', type:'public', icon:'⚔️' },
+];
+
+const DEFAULT_CHECKLIST = [
+  { id:'channels', label:'Canali per nazione configurati', done:false },
+  { id:'nationsdb', label:'Database nazioni inizializzato', done:false },
+  { id:'turnconfig', label:'Durata turno definita e annunciata', done:false },
+  { id:'battlerules', label:'Regole segnalazione battaglie distribuite', done:false },
+  { id:'mapver', label:'Sistema versioning mappa stabilito', done:false },
+  { id:'truthrule', label:'Regola "AI è fonte di verità" annunciata', done:false },
+  { id:'inactivity', label:'Politica nazioni inattive definita', done:false },
+  { id:'testrun', label:'Turno di test completato (2-3 giocatori)', done:false },
+];
+
+const DEFAULT_ADMINS = {
+  'Lorenzo Sgreccia': { username:'Lorenzo Sgreccia', password:'28062008Matrimonio', role:'admin', nation:'👑 Admin', nationColor:'#f0b232', channelAccess:[], createdAt: Date.now() },
+  'Blesi Sheqi':      { username:'Blesi Sheqi',      password:'Blesi 123',          role:'admin', nation:'👑 Admin', nationColor:'#f0b232', channelAccess:[], createdAt: Date.now() }
+};
+
+// ════════════════════════════════════════════════
+//  INIZIALIZZAZIONE FIRESTORE (prima esecuzione)
+// ════════════════════════════════════════════════
+async function ensureSeedData(){
+  // Utenti admin di default
+  for (const [uname, udata] of Object.entries(DEFAULT_ADMINS)) {
+    const ref = fb.doc(fb.db, 'users', uname);
+    const snap = await fb.getDoc(ref);
+    if (!snap.exists()) await fb.setDoc(ref, udata);
+  }
+  // Canali di default
+  for (const ch of DEFAULT_CHANNELS) {
+    const ref = fb.doc(fb.db, 'channels', ch.id);
+    const snap = await fb.getDoc(ref);
+    if (!snap.exists()) await fb.setDoc(ref, ch);
+  }
+  // Config turno
+  const turnRef = fb.doc(fb.db, 'config', 'turn');
+  const turnSnap = await fb.getDoc(turnRef);
+  if (!turnSnap.exists()) {
+    await fb.setDoc(turnRef, { current:1, duration:48, startISO: new Date().toISOString() });
+  }
+  // Config limite messaggi AI giornaliero
+  const aiLimitRef = fb.doc(fb.db, 'config', 'aiLimit');
+  const aiLimitSnap = await fb.getDoc(aiLimitRef);
+  if (!aiLimitSnap.exists()) {
+    await fb.setDoc(aiLimitRef, { dailyLimit: 10 });
+  }
+  // Checklist lancio
+  const checkRef = fb.doc(fb.db, 'config', 'launchChecklist');
+  const checkSnap = await fb.getDoc(checkRef);
+  if (!checkSnap.exists()) {
+    await fb.setDoc(checkRef, { items: DEFAULT_CHECKLIST });
+  }
+}
+
+// ════════════════════════════════════════════════
+//  LISTENERS REALTIME (collegati dopo il login)
+// ════════════════════════════════════════════════
+let unsubUsers=null, unsubChannels=null, unsubNations=null, unsubTurnConfig=null,
+    unsubTurnActions=null, unsubBattleLog=null, unsubMapVersions=null, unsubChecklist=null,
+    unsubAiLimit=null, unsubAiUsage=null;
+
+function attachGlobalListeners(){
+  // Users
+  unsubUsers = fb.onSnapshot(fb.collection(fb.db,'users'), snap => {
+    db.users = {};
+    snap.forEach(d => db.users[d.id] = d.data());
+    renderMembersSidebar();
+    if (document.getElementById('admin-overlay').style.display === 'flex') {
+      if (activeAdminTab==='users') renderUsersTable();
+      if (activeAdminTab==='admins') renderAdminsTab();
+    }
+    // aggiorna tag corrente se cambia la mia nazione
+    if (currentUser && db.users[currentUser.username]) {
+      currentUser = db.users[currentUser.username];
+      document.getElementById('cur-tag').textContent = currentUser.nation || 'Online';
+    }
+  });
+
+  // Channels
+  unsubChannels = fb.onSnapshot(fb.collection(fb.db,'channels'), snap => {
+    db.channels = [];
+    snap.forEach(d => db.channels.push(d.data()));
+    renderChannelsSidebar();
+    if (document.getElementById('admin-overlay').style.display === 'flex' && activeAdminTab==='channels') renderChannelsTable();
+  });
+
+  // Nations DB
+  unsubNations = fb.onSnapshot(fb.collection(fb.db,'nationsDB'), snap => {
+    db.nationsDB = [];
+    snap.forEach(d => db.nationsDB.push({ ...d.data(), _id:d.id }));
+    if (document.getElementById('admin-overlay').style.display === 'flex' && activeAdminTab==='nations') renderNationsTable();
+  });
+
+  // Turn config
+  unsubTurnConfig = fb.onSnapshot(fb.doc(fb.db,'config','turn'), snap => {
+    if (snap.exists()) {
+      db.turnConfig = snap.data();
+      document.getElementById('turn-badge').textContent = 'T'+db.turnConfig.current;
+      if (currentChannel && currentChannel.startsWith('ai_')) {
+        document.getElementById('tp-turn').textContent = db.turnConfig.current;
+        document.getElementById('tp-duration').textContent = db.turnConfig.duration+'h';
+        updateTurnDeadline();
+      }
+      if (document.getElementById('admin-overlay').style.display==='flex' && activeAdminTab==='turns') renderTurnsTab();
+    }
+  });
+
+  // Turn actions
+  unsubTurnActions = fb.onSnapshot(fb.collection(fb.db,'turnActions'), snap => {
+    db.turnActions = [];
+    snap.forEach(d => db.turnActions.push({ ...d.data(), _id:d.id }));
+    if (document.getElementById('admin-overlay').style.display==='flex' && activeAdminTab==='turns') renderTurnsTab();
+  });
+
+  // Battle log
+  unsubBattleLog = fb.onSnapshot(fb.collection(fb.db,'battleLog'), snap => {
+    db.battleLog = [];
+    snap.forEach(d => db.battleLog.push({ ...d.data(), _id:d.id }));
+    if (document.getElementById('battle-overlay').style.display==='flex') renderBattleLogList();
+  });
+
+  // Map versions
+  unsubMapVersions = fb.onSnapshot(fb.collection(fb.db,'mapVersions'), snap => {
+    db.mapVersions = [];
+    snap.forEach(d => db.mapVersions.push({ ...d.data(), _id:d.id }));
+    if (document.getElementById('admin-overlay').style.display==='flex' && activeAdminTab==='mapver') renderMapVersions();
+  });
+
+  // Launch checklist
+  unsubChecklist = fb.onSnapshot(fb.doc(fb.db,'config','launchChecklist'), snap => {
+    if (snap.exists()) {
+      db.launchChecklist = snap.data().items || [];
+      if (document.getElementById('admin-overlay').style.display==='flex' && activeAdminTab==='launch') renderLaunchChecklist();
+    }
+  });
+
+  // Limite messaggi AI giornaliero
+  unsubAiLimit = fb.onSnapshot(fb.doc(fb.db,'config','aiLimit'), snap => {
+    if (snap.exists()) {
+      db.aiLimitConfig = snap.data();
+    } else {
+      db.aiLimitConfig = { dailyLimit: 10 };
+    }
+    updateAiQuotaUI();
+    if (document.getElementById('admin-overlay').style.display==='flex' && activeAdminTab==='ailimit') renderAiLimitTab();
+  });
+
+  // Utilizzo giornaliero AI di tutti gli utenti (per il pannello admin)
+  unsubAiUsage = fb.onSnapshot(fb.collection(fb.db,'aiUsage'), snap => {
+    db.aiUsage = {};
+    snap.forEach(d => db.aiUsage[d.id] = d.data());
+    if (document.getElementById('admin-overlay').style.display==='flex' && activeAdminTab==='ailimit') renderAiLimitTab();
+  });
+}
+
+function getAvatarColor(n) {
+  let h=0; for(let c of n) h=((h<<5)-h)+c.charCodeAt(0);
+  const COLORS=['#5865f2','#23a55a','#ed4245','#EB459E','#FF7700','#00D4FF','#AA00FF','#FFD700','#FF4500','#00FF7F'];
+  return COLORS[Math.abs(h)%COLORS.length];
+}
+function getInitials(n) { return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+function formatTime(ts) {
+  const d = ts instanceof Date ? ts : new Date(ts);
+  return d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+}
+function formatDate(ts) {
+  const d = ts instanceof Date ? ts : new Date(ts);
+  const t = new Date();
+  return d.toDateString()===t.toDateString() ? 'Oggi '+formatTime(d) : d.toLocaleDateString('it-IT')+' '+formatTime(d);
+}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+function tsToMillis(ts) {
+  // Gestisce sia Firestore Timestamp che numero/Date
+  if (!ts) return Date.now();
+  if (typeof ts.toMillis === 'function') return ts.toMillis();
+  if (ts instanceof Date) return ts.getTime();
+  return ts;
+}
+
+// ════════════════════════════════════════════════
+//  AUTH
+// ════════════════════════════════════════════════
+function switchAuthTab(m) {
+  authMode=m;
+  document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active',(m==='login')===(i===0)));
+  document.getElementById('auth-submit-btn').textContent = m==='login' ? 'Accedi' : 'Registrati';
+  document.getElementById('auth-error').style.display='none';
+}
+
+async function handleAuth() {
+  const u=document.getElementById('auth-username').value.trim();
+  const p=document.getElementById('auth-password').value;
+  const btn=document.getElementById('auth-submit-btn');
+  if(!u||!p){showAuthErr('Compila tutti i campi.');return;}
+
+  btn.disabled = true;
+  const origText = btn.textContent;
+  btn.textContent = '⏳ Attendere...';
+
+  try {
+    await fbReady;
+    await ensureSeedData();
+
+    const ref = fb.doc(fb.db,'users',u);
+    const snap = await fb.getDoc(ref);
+
+    if (authMode==='login') {
+      if (!snap.exists()) { showAuthErr('Username o password errati.'); return; }
+      const user = snap.data();
+      if (user.password !== p) { showAuthErr('Username o password errati.'); return; }
+      currentUser = user;
+      await enterApp();
+    } else {
+      if (snap.exists()) { showAuthErr('Username già in uso.'); return; }
+      const nu = { username:u, password:p, role:'user', nation:null, nationColor:null, channelAccess:[], createdAt: Date.now() };
+      await fb.setDoc(ref, nu);
+      currentUser = nu;
+      await enterApp();
+    }
+  } catch(e) {
+    showAuthErr('Errore di connessione a Firebase: '+e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+}
+
+function showAuthErr(m){const e=document.getElementById('auth-error');e.textContent=m;e.style.display='block';}
+document.getElementById('auth-password').addEventListener('keydown',e=>{if(e.key==='Enter')handleAuth();});
+
+function logout(){
+  // Scollega tutti i listener
+  [unsubUsers,unsubChannels,unsubNations,unsubTurnConfig,unsubTurnActions,unsubBattleLog,unsubMapVersions,unsubChecklist].forEach(u=>{ if(u) u(); });
+  if (activeMessageUnsub) activeMessageUnsub();
+  currentUser=null;currentChannel=null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+  document.getElementById('auth-username').value='';
+  document.getElementById('auth-password').value='';
+}
+
+// ════════════════════════════════════════════════
+//  APP INIT
+// ════════════════════════════════════════════════
+async function enterApp(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  const av=document.getElementById('cur-avatar');
+  av.textContent=getInitials(currentUser.username);
+  av.style.background=getAvatarColor(currentUser.username);
+  av.style.color='#fff';
+  document.getElementById('cur-name').textContent=currentUser.username;
+  document.getElementById('cur-tag').textContent=currentUser.nation||'Online';
+  if(currentUser.role==='admin') document.getElementById('admin-btn').style.display='flex';
+
+  attachGlobalListeners();
+
+  // Attendi il primo snapshot dei canali prima di apri il primo canale
+  await new Promise(resolve => {
+    const check = setInterval(()=>{ if(db.channels.length) { clearInterval(check); resolve(); } }, 50);
+    setTimeout(()=>{ clearInterval(check); resolve(); }, 3000);
+  });
+
+  renderChannelsSidebar();
+  renderMembersSidebar();
+  const first=getAccessibleChannels()[0];
+  if(first) openChannel(first.id);
+}
+
+function getAccessibleChannels(){
+  return db.channels.filter(ch=>{
+    if(ch.type==='public') return true;
+    if(currentUser.role==='admin') return true;
+    return (currentUser.channelAccess||[]).includes(ch.id);
+  });
+}
+
+// ════════════════════════════════════════════════
+//  SIDEBARS
+// ════════════════════════════════════════════════
+function renderChannelsSidebar(){
+  const list=document.getElementById('channels-list');
+  const acc=getAccessibleChannels();
+  let h='';
+  const pub=acc.filter(c=>c.type==='public');
+  const prv=acc.filter(c=>c.type==='private');
+  h+='<div class="channel-category"><span>Canali Pubblici</span>'+(currentUser.role==='admin'?'<button style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px" onclick="openAdmin()" title="Aggiungi canale">+</button>':'')+'</div>';
+  pub.forEach(ch=>{ h+=chItem(ch); });
+  if(prv.length||currentUser.role==='admin'){
+    h+='<div class="channel-category" style="margin-top:8px"><span>Canali Privati</span></div>';
+    prv.forEach(ch=>{ h+=chItem(ch,true); });
+  }
+  const aiId='ai_'+currentUser.username;
+  h+='<div class="channel-category" style="margin-top:8px"><span>Chat Privata</span></div>';
+  h+='<div class="channel-item'+(currentChannel===aiId?' active':'')+'" id="ch-item-'+aiId+'" onclick="openChannel(\''+aiId+'\')"><span class="channel-icon">🤖</span><span>Assistente AI</span></div>';
+  if(currentUser.role==='admin'){
+    h+='<div class="channel-category" style="margin-top:8px"><span>Admin</span></div>';
+    h+='<div class="channel-item'+(currentChannel==='worldbuilder'?' active':'')+'" id="ch-item-worldbuilder" onclick="openChannel(\'worldbuilder\')"><span class="channel-icon">🌐</span><span>Worldbuilder AI</span></div>';
+    h+='<div class="channel-item" onclick="openAdmin()"><span class="channel-icon">⚙️</span><span>Pannello Admin</span></div>';
+  }
+  list.innerHTML=h;
+}
+
+function chItem(ch,isPriv){
+  const a=currentChannel===ch.id?' active':'';
+  const ic=isPriv?'🔒':(ch.icon||'#');
+  return '<div class="channel-item'+a+'" id="ch-item-'+ch.id+'" onclick="openChannel(\''+ch.id+'\')"><span class="channel-icon">'+ic+'</span><span>'+ch.name+'</span></div>';
+}
+
+function renderMembersSidebar(){
+  const sb=document.getElementById('members-sidebar');
+  const admins=Object.values(db.users).filter(u=>u.role==='admin');
+  const users=Object.values(db.users).filter(u=>u.role!=='admin');
+  let h='';
+  if(admins.length){ h+='<div class="members-category">Amministratori — '+admins.length+'</div>'; admins.forEach(u=>{ h+=mItem(u,'#f0b232'); }); }
+  if(users.length){ h+='<div class="members-category" style="margin-top:8px">Membri — '+users.length+'</div>'; users.forEach(u=>{ h+=mItem(u,null); }); }
+  sb.innerHTML=h;
+}
+function mItem(u,oc){
+  const c=oc||u.nationColor||getAvatarColor(u.username);
+  return '<div class="member-item"><div class="member-avatar" style="background:'+c+';color:#fff">'+getInitials(u.username)+'<div class="member-status status-online"></div></div><div><div class="member-name">'+u.username+'</div><div class="member-nation">'+(u.nation||(u.role==='admin'?'👑 Admin':'Nessuna nazione'))+'</div></div></div>';
+}
+
+// ════════════════════════════════════════════════
+//  CHANNELS / MESSAGES (Firestore subcollections)
+// ════════════════════════════════════════════════
+function openChannel(id){
+  currentChannel=id;
+  document.querySelectorAll('.channel-item').forEach(e=>e.classList.remove('active'));
+  const it=document.getElementById('ch-item-'+id);
+  if(it) it.classList.add('active');
+
+  const isAI=id.startsWith('ai_');
+  const isWB=id==='worldbuilder';
+
+  document.getElementById('action-submit-btn').style.display=(isAI&&currentUser.role!=='admin')?'flex':'none';
+  document.getElementById('battle-btn').style.display=isAI?'flex':'none';
+  document.getElementById('turn-panel').style.display=isAI?'flex':'none';
+
+  if(isAI){
+    document.getElementById('header-icon').textContent='🤖';
+    document.getElementById('header-name').textContent='Assistente Personale AI';
+    document.getElementById('header-desc').textContent='Chat privata — solo tu e il tuo assistente';
+    document.getElementById('welcome-title').textContent='🤖 Assistente Personale';
+    document.getElementById('welcome-desc').textContent='Parla con il tuo assistente AI privato. Conosce la tua nazione e la situazione geopolitica attuale.';
+    document.getElementById('msg-input').placeholder='Chiedi qualcosa al tuo assistente…';
+    document.getElementById('tp-turn').textContent=db.turnConfig.current;
+    document.getElementById('tp-duration').textContent=db.turnConfig.duration+'h';
+    updateTurnDeadline();
+    attachAiUsageListener();
+  } else if(isWB){
+    document.getElementById('header-icon').textContent='🌐';
+    document.getElementById('header-name').textContent='Worldbuilder AI';
+    document.getElementById('header-desc').textContent='Sessione riservata agli admin — elaborazione turni';
+    document.getElementById('welcome-title').textContent='🌐 Worldbuilder AI';
+    document.getElementById('welcome-desc').textContent='Qui puoi elaborare i turni con il Worldbuilder. Vedi tutto; i giocatori vedono solo le notifiche pubblicate.';
+    document.getElementById('msg-input').placeholder='Invia input al Worldbuilder…';
+    if (activeAiUsageUnsub) { activeAiUsageUnsub(); activeAiUsageUnsub=null; }
+  } else {
+    const ch=db.channels.find(c=>c.id===id);
+    if(!ch) return;
+    document.getElementById('header-icon').textContent=ch.type==='private'?'🔒':(ch.icon||'#');
+    document.getElementById('header-name').textContent=ch.name;
+    document.getElementById('header-desc').textContent=ch.desc||'';
+    document.getElementById('welcome-title').textContent='Benvenuto in #'+ch.name;
+    document.getElementById('welcome-desc').textContent=ch.desc||"Questo è l'inizio del canale.";
+    document.getElementById('msg-input').placeholder='Scrivi in #'+ch.name+'…';
+    if (activeAiUsageUnsub) { activeAiUsageUnsub(); activeAiUsageUnsub=null; }
+  }
+
+  attachMessageListener(id, isAI, isWB);
+
+  // Su mobile, selezionare un canale chiude automaticamente il drawer
+  closeMobileDrawer('channel');
+}
+
+// ════════════════════════════════════════════════
+//  MOBILE DRAWERS (sidebar canali / membri su schermi piccoli)
+// ════════════════════════════════════════════════
+function toggleMobileDrawer(which){
+  const sidebar = document.getElementById(which==='channel' ? 'channel-sidebar' : 'members-sidebar');
+  const backdrop = document.getElementById(which==='channel' ? 'channel-backdrop' : 'members-backdrop');
+  const isOpen = sidebar.classList.contains('open');
+  if (isOpen) {
+    closeMobileDrawer(which);
+  } else {
+    // Chiudi l'altro drawer se aperto
+    closeMobileDrawer(which==='channel' ? 'members' : 'channel');
+    sidebar.classList.add('open');
+    backdrop.classList.add('show');
+  }
+}
+function closeMobileDrawer(which){
+  const sidebar = document.getElementById(which==='channel' ? 'channel-sidebar' : 'members-sidebar');
+  const backdrop = document.getElementById(which==='channel' ? 'channel-backdrop' : 'members-backdrop');
+  sidebar.classList.remove('open');
+  backdrop.classList.remove('show');
+}
+
+// Determina il path Firestore per i messaggi del canale corrente
+function messagesCollectionRef(id, isAI, isWB){
+  if (isAI || isWB) {
+    // Chat privata: collection 'privateChats/{id}/items'
+    return fb.collection(fb.db,'privateChats',id,'items');
+  }
+  return fb.collection(fb.db,'messages',id,'items');
+}
+
+function attachMessageListener(id, isAI, isWB){
+  if (activeMessageUnsub) { activeMessageUnsub(); activeMessageUnsub=null; }
+  const ref = messagesCollectionRef(id, isAI, isWB);
+  const q = fb.query(ref, fb.orderBy('ts','asc'));
+  activeMessageUnsub = fb.onSnapshot(q, snap => {
+    const msgs = [];
+    snap.forEach(d => msgs.push({ ...d.data(), _id:d.id, ts: tsToMillis(d.data().ts) }));
+    renderMessages(msgs);
+  });
+}
+
+function updateTurnDeadline(){
+  const cfg=db.turnConfig;
+  const start=new Date(cfg.startISO);
+  const end=new Date(start.getTime()+cfg.duration*3600000);
+  document.getElementById('tp-deadline').textContent=end.toLocaleDateString('it-IT')+' '+end.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+}
+
+function renderMessages(msgs){
+  const area=document.getElementById('messages-area');
+  const banner=document.getElementById('welcome-banner');
+  Array.from(area.children).forEach(el=>{ if(el!==banner) el.remove(); });
+  if(!msgs||!msgs.length) return;
+  let last=null;
+  msgs.forEach(m=>{ area.appendChild(createMsgEl(m,last!==m.author)); last=m.author; });
+  area.scrollTop=area.scrollHeight;
+}
+
+function createMsgEl(msg,showHead){
+  const div=document.createElement('div');
+  const user=db.users[msg.author];
+  const color=msg.isAI?(msg.isWB?'#f0b232':'#5865f2'):(user&&user.nationColor||getAvatarColor(msg.author));
+  const textClass=msg.isWB?'worldbuilder-response':(msg.isAI?'ai-response':'');
+
+  if(showHead){
+    div.className='message-group first';
+    const nationBadge=msg.isAI?'':((user&&user.role==='admin')?'<span class="msg-admin-tag">👑 Admin</span>':((user&&user.nation)?'<span class="msg-nation-tag" style="background:'+user.nationColor+'22;color:'+user.nationColor+'">'+user.nation+'</span>':''));
+    div.innerHTML='<div class="msg-avatar" style="background:'+(msg.isAI?'#23272d':color)+';color:'+(msg.isAI?color:'#fff')+'">'+(msg.isAI?(msg.isWB?'🌐':'🤖'):getInitials(msg.author))+'</div>'+
+    '<div class="msg-content">'+
+      '<div class="msg-header"><span class="msg-author" style="color:'+(msg.isAI?color:((user&&user.nationColor)||'var(--text-header)'))+'">'+msg.author+'</span>'+nationBadge+'<span class="msg-time">'+formatDate(msg.ts)+'</span></div>'+
+      '<div class="msg-text '+textClass+'">'+esc(msg.text)+'</div>'+
+    '</div>';
+  } else {
+    div.className='msg-continuation';
+    div.innerHTML='<div class="spacer"><span style="font-size:10px;color:var(--text-muted)">'+formatTime(msg.ts)+'</span></div>'+
+    '<div class="msg-text '+textClass+'" style="padding-top:1px">'+esc(msg.text)+'</div>';
+  }
+  return div;
+}
+
+// ════════════════════════════════════════════════
+//  SEND MESSAGE (scrive su Firestore, il listener aggiorna la UI)
+// ════════════════════════════════════════════════
+function handleMsgKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
+function autoResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,120)+'px'; }
+
+async function sendMessage(){
+  const inp=document.getElementById('msg-input');
+  const text=inp.value.trim(); if(!text) return;
+
+  const isAI=currentChannel&&currentChannel.startsWith('ai_');
+  const isWB=currentChannel==='worldbuilder';
+
+  if(isAI){
+    const ok = await canSendAiMessage();
+    if(!ok){
+      notify('🚫 Hai raggiunto il limite giornaliero di '+getAiDailyLimit()+' messaggi all\'Assistente AI. Il contatore si resetta ogni giorno alle 23:59.');
+      return;
+    }
+  }
+
+  inp.value=''; inp.style.height='auto';
+
+  const msg={ author:currentUser.username, text, ts:Date.now(), isAI:false };
+  const ref = messagesCollectionRef(currentChannel, isAI, isWB);
+  await fb.addDoc(ref, msg);
+
+  if(isAI){
+    await callPersonalAI(text);
+  } else if(isWB){
+    await callWorldbuilderAI(text);
+  }
+}
+
+// ────────── ASSISTENTE PERSONALE ──────────
+async function callPersonalAI(userText){
+  const typEl=document.getElementById('ai-typing'); typEl.style.display='block';
+
+  // Recupera ultimo storico (snapshot one-shot)
+  const ref = fb.collection(fb.db,'privateChats',currentChannel,'items');
+  const q = fb.query(ref, fb.orderBy('ts','asc'));
+  const snap = await new Promise(resolve => {
+    const unsub = fb.onSnapshot(q, s => { unsub(); resolve(s); });
+  });
+  const hist = [];
+  snap.forEach(d => hist.push(d.data()));
+  const convMsgs = hist.slice(-30).map(m=>({role:m.isAI?'assistant':'user',content:m.text}));
+
+  const nationsSnap=db.nationsDB.map(n=>n.name+': governo='+(n.gov||'—')+', stato='+n.status+', alleanze='+(n.ally||'nessuna')+', guerra='+(n.war||'nessuna')).join('\n');
+  try{
+    const r=await fetch(AI_PROXY_URL,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',max_tokens:4096,
+        system:"Sei l'Assistente Personale AI del server Nations Roleplay Minecraft \"MC Nations\".\n"+
+"Parli SOLO con "+currentUser.username+" (nazione: "+(currentUser.nation||'non assegnata')+").\n"+
+"Conosci SOLO ciò che la sua nazione saprebbe plausibilmente — non riveli mai azioni o piani privati di altri giocatori.\n"+
+"Rispondi in seconda persona dalla prospettiva della sua nazione. Puoi accennare a voci o intelligence come dispositivo narrativo, mai come perdita di dati reale.\n"+
+"Siamo al turno "+db.turnConfig.current+".\n\n"+
+"Situazione geopolitica attuale (visione pubblica):\n"+(nationsSnap||'Nessuna nazione registrata ancora.')+"\n\n"+
+"Rispondi sempre in italiano, in modo coinvolgente. Max 3-4 paragrafi.",
+        messages:convMsgs.length?convMsgs:[{role:'user',content:userText}]
+      })
+    });
+    const data=await r.json();
+    const txt=(data.content&&data.content[0]&&data.content[0].text)||'Errore nella risposta AI.';
+    typEl.style.display='none';
+    const ai={ author:'Assistente AI', text:txt, ts:Date.now(), isAI:true };
+    await fb.addDoc(fb.collection(fb.db,'privateChats',currentChannel,'items'), ai);
+  } catch(e){
+    typEl.style.display='none';
+    const err={ author:'Assistente AI', text:'⚠️ Errore di connessione. Riprova tra poco.', ts:Date.now(), isAI:true };
+    await fb.addDoc(fb.collection(fb.db,'privateChats',currentChannel,'items'), err);
+  }
+}
+
+// ────────── WORLDBUILDER (solo admin) ──────────
+async function callWorldbuilderAI(userText){
+  if(currentUser.role!=='admin') return;
+  const typEl=document.getElementById('ai-typing'); typEl.style.display='block';
+
+  const ref = fb.collection(fb.db,'privateChats','worldbuilder','items');
+  const q = fb.query(ref, fb.orderBy('ts','asc'));
+  const snap = await new Promise(resolve => {
+    const unsub = fb.onSnapshot(q, s => { unsub(); resolve(s); });
+  });
+  const hist = [];
+  snap.forEach(d => hist.push(d.data()));
+  const convMsgs = hist.slice(-20).map(m=>({role:m.isAI?'assistant':'user',content:m.text}));
+
+  const actionsSnap=db.turnActions.filter(a=>a.turn===db.turnConfig.current).map(a=>'['+(a.ts_human||'')+'] '+a.nation+' — '+a.type+': '+a.desc+' | Risorse: '+(a.resources||'—')+' | Coordinate: '+(a.coords||'—')).join('\n');
+  const nationsSnap=db.nationsDB.map(n=>n.name+' | Gov: '+(n.gov||'—')+' | Status: '+n.status+' | Alleanze: '+(n.ally||'—')+' | Guerra: '+(n.war||'—')+' | Territorio: '+(n.terr||'—')+' | Risorse: '+(n.res||'—')+'\nNote: '+(n.notes||'—')).join('\n\n');
+  const battleSnap=db.battleLog.slice(-10).map(b=>'[T'+b.turn+'] '+b.attacker+' vs '+b.defender+' | Scala: '+b.scale+' | Risultato: '+b.result+' | Distruzione: '+(b.destruction||'—')).join('\n');
+
+  try{
+    const r=await fetch(AI_PROXY_URL,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',max_tokens:8192,
+        system:"Sei il Worldbuilder per il server Nations Roleplay Minecraft \"MC Nations\". Emuli la storia geopolitica e rispondi alle azioni dei giocatori generando risultati che mescolano accuratezza storica con storia alternativa creata dalle decisioni dei giocatori. Sei l'arbitro imparziale della realtà in questo mondo.\n\n"+
+"REGOLE DI LOGICA STORICA:\n"+
+"1. Prima applica la plausibilità storica — azioni senza precedenti richiedono più risorse e hanno probabilità di successo inferiore\n"+
+"2. Applica la logica geografica — terreno, linee di rifornimento e distanza contano\n"+
+"3. Applica la logica delle coalizioni — nazioni potenti attraggono risposte di bilanciamento\n"+
+"4. Principio \"nessun pasto gratis\" — ogni guadagno crea una vulnerabilità\n\n"+
+"QUANDO RISOLVI UN TURNO, usa SEMPRE questo formato strutturato:\n"+
+"---TURNO "+db.turnConfig.current+" RISOLUZIONE---\n"+
+"CAMBIAMENTI TERRITORIALI: [lista nazione → guadagnato/perso → regione]\n"+
+"RISULTATI MILITARI: [per ogni conflitto]\n"+
+"CAMBIAMENTI DIPLOMATICI: [alleanze, nuove tensioni]\n"+
+"EFFETTI ECONOMICI: [risorse]\n"+
+"NOTA STORICA: [2-3 frasi narrative]\n"+
+"NOTIFICHE AI GIOCATORI: [cosa viene detto a ogni nazione separatamente]\n"+
+"---FINE RISOLUZIONE---\n\n"+
+"DATABASE NAZIONI ATTUALE (Turno "+db.turnConfig.current+"):\n"+(nationsSnap||'Nessuna nazione registrata.')+"\n\n"+
+"AZIONI RICEVUTE QUESTO TURNO:\n"+(actionsSnap||'Nessuna azione ricevuta.')+"\n\n"+
+"LOG BATTAGLIE RECENTI:\n"+(battleSnap||'Nessuna battaglia registrata.')+"\n\n"+
+"Rispondi sempre in italiano. Sei imparziale e rigoroso.",
+        messages:convMsgs.length?convMsgs:[{role:'user',content:userText}]
+      })
+    });
+    const data=await r.json();
+    const txt=(data.content&&data.content[0]&&data.content[0].text)||'Errore nella risposta AI.';
+    typEl.style.display='none';
+    const ai={ author:'Worldbuilder AI', text:txt, ts:Date.now(), isAI:true, isWB:true };
+    await fb.addDoc(fb.collection(fb.db,'privateChats','worldbuilder','items'), ai);
+  } catch(e){
+    typEl.style.display='none';
+    const err={ author:'Worldbuilder AI', text:'⚠️ Errore di connessione.', ts:Date.now(), isAI:true, isWB:true };
+    await fb.addDoc(fb.collection(fb.db,'privateChats','worldbuilder','items'), err);
+  }
+}
+
+// ════════════════════════════════════════════════
+//  ACTION FORM
+// ════════════════════════════════════════════════
+function openActionForm(){
+  document.getElementById('action-turn-num').textContent=db.turnConfig.current;
+  document.getElementById('action-desc').value='';
+  document.getElementById('action-coords').value='';
+  document.getElementById('action-resources').value='';
+  document.getElementById('action-notes').value='';
+  document.querySelectorAll('.action-type-btn').forEach(b=>b.classList.remove('selected'));
+  selectedActionType='';
+  document.getElementById('action-type-val').value='';
+  openOverlay('action-overlay');
+}
+function selectActionType(t,btn){
+  selectedActionType=t;
+  document.getElementById('action-type-val').value=t;
+  document.querySelectorAll('.action-type-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+async function submitAction(){
+  const type=document.getElementById('action-type-val').value;
+  const desc=document.getElementById('action-desc').value.trim();
+  if(!type){notify('⚠️ Seleziona il tipo di azione');return;}
+  if(!desc){notify("⚠️ Descrivi l'azione");return;}
+  const action={
+    username:currentUser.username,
+    nation:currentUser.nation||currentUser.username,
+    type, desc,
+    coords:document.getElementById('action-coords').value.trim(),
+    resources:document.getElementById('action-resources').value.trim(),
+    notes:document.getElementById('action-notes').value.trim(),
+    turn:db.turnConfig.current,
+    ts:Date.now(),
+    ts_human:formatDate(Date.now())
+  };
+  await fb.addDoc(fb.collection(fb.db,'turnActions'), action);
+  closeOverlay('action-overlay');
+  notify('✅ Azione inviata per il Turno '+db.turnConfig.current);
+
+  const confirmMsg={ author:'Assistente AI', text:'✅ Ho ricevuto la tua azione per il Turno '+db.turnConfig.current+':\n📋 Tipo: '+type+'\n📝 '+desc+'\n'+(action.coords?'📍 '+action.coords+'\n':'')+(action.resources?'💰 '+action.resources+'\n':'')+'L\'azione verrà elaborata dal Worldbuilder alla chiusura del turno.', ts:Date.now()+1, isAI:true };
+  await fb.addDoc(fb.collection(fb.db,'privateChats','ai_'+currentUser.username,'items'), confirmMsg);
+}
+
+// ════════════════════════════════════════════════
+//  BATTLE LOG
+// ════════════════════════════════════════════════
+function openBattleLog(){
+  renderBattleLogList();
+  openOverlay('battle-overlay');
+}
+async function submitBattle(){
+  const att=document.getElementById('battle-attacker').value.trim();
+  const def=document.getElementById('battle-defender').value.trim();
+  if(!att||!def){notify('⚠️ Inserisci entrambe le nazioni');return;}
+  const ev={
+    attacker:att, defender:def,
+    coords:document.getElementById('battle-coords').value.trim(),
+    scale:document.getElementById('battle-scale').value,
+    destruction:document.getElementById('battle-destruction').value.trim(),
+    result:document.getElementById('battle-result').value,
+    screenshot:document.getElementById('battle-screenshot').value,
+    notes:document.getElementById('battle-notes').value.trim(),
+    turn:db.turnConfig.current,
+    reporter:currentUser.username,
+    ts:Date.now()
+  };
+  await fb.addDoc(fb.collection(fb.db,'battleLog'), ev);
+  document.getElementById('battle-attacker').value='';
+  document.getElementById('battle-defender').value='';
+  document.getElementById('battle-coords').value='';
+  document.getElementById('battle-destruction').value='';
+  document.getElementById('battle-notes').value='';
+  notify('🗡️ Evento battaglia registrato');
+}
+function renderBattleLogList(){
+  const el=document.getElementById('battle-log-list');
+  const recent=db.battleLog.slice().sort((a,b)=>tsToMillis(b.ts)-tsToMillis(a.ts)).slice(0,10);
+  if(!recent.length){el.innerHTML='<p style="color:var(--text-muted);font-size:13px;text-align:center;padding:20px">Nessun evento registrato</p>';return;}
+  const scaleMap={'scaramuccia':'badge-user','impegno':'badge-dispute','battaglia':'badge-war'};
+  const resMap={'attaccante':'badge-war','difensore':'badge-peace','conteso':'badge-dispute'};
+  el.innerHTML=recent.map(function(b){
+    const scaleColor=scaleMap[b.scale]||'badge-user';
+    const resColor=resMap[b.result]||'badge-user';
+    return '<div class="battle-card">'+
+      '<div class="battle-card-header"><span style="font-size:20px">⚔️</span>'+
+      '<div><h4>'+b.attacker+' vs '+b.defender+'</h4><p class="meta">T'+b.turn+' · '+formatDate(tsToMillis(b.ts))+' · segnalato da '+b.reporter+'</p></div></div>'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">'+
+      '<span class="battle-tag '+scaleColor+'">'+b.scale+'</span>'+
+      '<span class="battle-tag '+resColor+'">Risultato: '+b.result+'</span>'+
+      '<span class="battle-tag '+(b.screenshot==='si'?'badge-peace':'badge-war')+'">'+(b.screenshot==='si'?'📸 Screenshot':'❌ No screenshot')+'</span></div>'+
+      (b.destruction?'<p style="font-size:13px;color:var(--text-secondary)">💥 '+b.destruction+'</p>':'')+
+      (b.notes?'<p style="font-size:13px;color:var(--text-muted);margin-top:4px">'+esc(b.notes)+'</p>':'')+
+    '</div>';
+  }).join('');
+}
+
+// ════════════════════════════════════════════════
+//  WORLDBUILDER MODAL
+// ════════════════════════════════════════════════
+function openWorldbuilder(){ openOverlay('wb-overlay'); document.getElementById('wb-result-area').style.display='none'; }
+
+async function runWorldbuilder(){
+  if(currentUser.role!=='admin'){notify('❌ Solo gli admin possono usare il Worldbuilder');return;}
+  const extra=document.getElementById('wb-extra').value.trim();
+  const area=document.getElementById('wb-result-area');
+  const out=document.getElementById('wb-output');
+  area.style.display='block'; out.textContent='⏳ Elaborazione in corso...';
+  document.getElementById('wb-structured').innerHTML='';
+
+  const actionsSnap=db.turnActions.filter(function(a){return a.turn===db.turnConfig.current;})
+    .map(function(a){return '['+a.nation+'] '+a.type.toUpperCase()+': '+a.desc+' | Risorse: '+(a.resources||'—')+' | Coordinate: '+(a.coords||'—');}).join('\n');
+  const nationsSnap=db.nationsDB.map(function(n){return n.name+' | Stato: '+n.status+' | Alleanze: '+(n.ally||'—')+' | Guerra: '+(n.war||'—')+'\nNOTE: '+(n.notes||'—');}).join('\n\n');
+  const battleSnap=db.battleLog.filter(function(b){return b.turn===db.turnConfig.current;}).map(function(b){return b.attacker+' vs '+b.defender+' | '+b.scale+' | Risultato: '+b.result+' | Distruzione: '+(b.destruction||'—');}).join('\n');
+
+  try{
+    const r=await fetch(AI_PROXY_URL,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',max_tokens:8192,
+        system:"Sei il Worldbuilder per il server Nations Roleplay Minecraft \"MC Nations\". Elabora la risoluzione del Turno "+db.turnConfig.current+".\n\n"+
+"Regole obbligatorie:\n"+
+"1. Plausibilità storica — azioni implausibili hanno probabilità ridotta\n"+
+"2. Logica geografica — terreno e linee di rifornimento contano\n"+
+"3. Logica coalizioni — potere attira bilanciamento\n"+
+"4. Nessun pasto gratis\n\n"+
+"DATABASE NAZIONI:\n"+(nationsSnap||'Nessuna nazione.')+"\n\n"+
+"AZIONI TURNO "+db.turnConfig.current+":\n"+(actionsSnap||'Nessuna azione inviata.')+"\n\n"+
+"BATTAGLIE TURNO "+db.turnConfig.current+":\n"+(battleSnap||'Nessuna battaglia.')+"\n\n"+
+(extra?'NOTE ADMIN: '+extra+"\n\n":'')+
+"Rispondi SEMPRE con questo formato esatto:\n"+
+"---TURNO "+db.turnConfig.current+" RISOLUZIONE---\n"+
+"CAMBIAMENTI TERRITORIALI: [lista]\n"+
+"RISULTATI MILITARI: [lista]\n"+
+"CAMBIAMENTI DIPLOMATICI: [lista]\n"+
+"EFFETTI ECONOMICI: [lista]\n"+
+"NOTA STORICA: [2-3 frasi]\n"+
+"NOTIFICHE AI GIOCATORI: [per ogni nazione]\n"+
+"---FINE RISOLUZIONE---",
+        messages:[{role:'user',content:'Elabora la risoluzione completa del turno.'}]
+      })
+    });
+    const data=await r.json();
+    const txt=(data.content&&data.content[0]&&data.content[0].text)||'Errore.';
+    out.textContent=txt;
+    parseWBOutput(txt);
+  } catch(e){
+    out.textContent='⚠️ Errore di connessione: '+e.message;
+  }
+}
+
+function parseWBOutput(txt){
+  const struct=document.getElementById('wb-structured');
+  const sections=['CAMBIAMENTI TERRITORIALI','RISULTATI MILITARI','CAMBIAMENTI DIPLOMATICI','EFFETTI ECONOMICI','NOTA STORICA'];
+  let h='';
+  sections.forEach(function(s){
+    const re=new RegExp(s+':\\s*([\\s\\S]*?)(?=\\n[A-Z\\s]+:|---FINE|$)','i');
+    const m=txt.match(re);
+    if(m&&m[1].trim()){
+      h+='<div class="wb-block"><h5>'+s+'</h5><p>'+esc(m[1].trim())+'</p></div>';
+    }
+  });
+  struct.innerHTML=h;
+}
+
+async function applyWBToAnnouncement(){
+  const txt=document.getElementById('wb-output').textContent;
+  if(!txt||txt.indexOf('⏳')!==-1) return;
+  const msg={ author:currentUser.username, text:'📢 RISOLUZIONE TURNO '+db.turnConfig.current+'\n\n'+txt, ts:Date.now(), isAI:false };
+  await fb.addDoc(fb.collection(fb.db,'messages','notizie','items'), msg);
+  notify('📢 Pubblicato in #notizie');
+  closeOverlay('wb-overlay');
+  openChannel('notizie');
+}
+
+async function advanceTurn(){
+  if(!confirm('Avanzare al turno '+(db.turnConfig.current+1)+'? Le azioni del turno corrente verranno archiviate.')) return;
+  const newTurn = db.turnConfig.current + 1;
+  await fb.setDoc(fb.doc(fb.db,'config','turn'), {
+    current: newTurn,
+    duration: db.turnConfig.duration,
+    startISO: new Date().toISOString()
+  });
+  notify('⏭️ Avanzato al Turno '+newTurn);
+  closeOverlay('wb-overlay');
+  closeOverlay('admin-overlay');
+}
+
+// ════════════════════════════════════════════════
+//  ADMIN PANEL
+// ════════════════════════════════════════════════
+function openAdmin(){
+  if(currentUser.role!=='admin') return;
+  openOverlay('admin-overlay');
+  switchAdminTab(activeAdminTab);
+}
+function switchAdminTab(t){
+  activeAdminTab=t;
+  const tabs=['users','channels','nations','turns','ailimit','mapver','admins','launch'];
+  document.querySelectorAll('.modal-tab').forEach(function(el,i){el.classList.toggle('active',tabs[i]===t);});
+  document.querySelectorAll('.modal-section').forEach(function(s){s.classList.remove('active');});
+  document.getElementById('tab-'+t).classList.add('active');
+  if(t==='users') renderUsersTable();
+  if(t==='channels') renderChannelsTable();
+  if(t==='nations') renderNationsTable();
+  if(t==='turns') renderTurnsTab();
+  if(t==='ailimit') renderAiLimitTab();
+  if(t==='mapver') renderMapVersions();
+  if(t==='admins') renderAdminsTab();
+  if(t==='launch') renderLaunchChecklist();
+}
+
+const NC=['#5865f2','#23a55a','#ed4245','#EB459E','#FF7700','#00D4FF','#AA00FF','#FFD700','#FF4500','#00FF7F'];
+function renderUsersTable(){
+  document.getElementById('users-tbody').innerHTML=Object.values(db.users).map(function(u){
+    const isA=u.role==='admin';
+    const chOpts=db.channels.filter(function(c){return c.type==='private';}).map(function(c){
+      const ha=(u.channelAccess||[]).includes(c.id);
+      return '<span class="access-tag '+(ha?'everyone':'')+'" onclick="toggleAccess(\''+u.username+'\',\''+c.id+'\',this)">#'+c.name+'</span>';
+    }).join('');
+    return '<tr>'+
+      '<td><div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:50%;background:'+(u.nationColor||getAvatarColor(u.username))+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">'+getInitials(u.username)+'</div>'+u.username+'</div></td>'+
+      '<td><span class="badge '+(isA?'badge-admin':'badge-user')+'">'+(isA?'👑 Admin':'👤 Membro')+'</span></td>'+
+      '<td><div style="display:flex;gap:6px;align-items:center"><input type="text" value="'+(u.nation||'')+'" id="n-'+u.username+'" placeholder="es. Italia 🇮🇹" style="background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text-primary);font-size:13px;width:150px;font-family:\'Inter\',sans-serif;outline:none"><button class="btn-success" onclick="saveNation(\''+u.username+'\')">✓</button></div></td>'+
+      '<td><div style="display:flex;gap:4px;flex-wrap:wrap">'+(chOpts||'<span style="font-size:12px;color:var(--text-muted)">—</span>')+'</div></td>'+
+      '<td>'+(!isA?'<button class="btn-danger" onclick="removeUser(\''+u.username+'\')">Rimuovi</button>':'<span style="font-size:12px;color:var(--text-muted)">—</span>')+'</td>'+
+    '</tr>';
+  }).join('');
+}
+async function saveNation(un){
+  const v=document.getElementById('n-'+un).value.trim();
+  const nationColor=v?NC[Object.keys(db.users).indexOf(un)%NC.length]:null;
+  await fb.updateDoc(fb.doc(fb.db,'users',un), { nation: v||null, nationColor });
+  notify('✅ Nazione aggiornata per '+un);
+}
+async function toggleAccess(un,cid,el){
+  const u=db.users[un];
+  const access = u.channelAccess || [];
+  const i=access.indexOf(cid);
+  let newAccess;
+  if(i===-1){ newAccess=[...access, cid]; el.classList.add('everyone'); }
+  else{ newAccess=access.filter(x=>x!==cid); el.classList.remove('everyone'); }
+  await fb.updateDoc(fb.doc(fb.db,'users',un), { channelAccess: newAccess });
+  notify('✅ Accesso aggiornato');
+}
+async function removeUser(un){
+  if(!confirm('Rimuovere '+un+'?')) return;
+  await fb.deleteDoc(fb.doc(fb.db,'users',un));
+  notify('🗑️ Utente rimosso');
+}
+
+function renderChannelsTable(){
+  document.getElementById('channels-tbody').innerHTML=db.channels.map(function(ch){
+    return '<tr><td>'+(ch.icon||'#')+' '+ch.name+'</td>'+
+    '<td><span class="badge '+(ch.type==='public'?'badge-user':'badge-admin')+'">'+(ch.type==='public'?'🌐 Pubblico':'🔒 Privato')+'</span></td>'+
+    '<td style="color:var(--text-secondary)">'+(ch.desc||'—')+'</td>'+
+    '<td><button class="btn-danger" onclick="deleteChannel(\''+ch.id+'\')">Elimina</button></td></tr>';
+  }).join('');
+}
+async function addChannel(){
+  const name=document.getElementById('new-ch-name').value.trim().toLowerCase().replace(/\s+/g,'-');
+  const desc=document.getElementById('new-ch-desc').value.trim();
+  const type=document.getElementById('new-ch-type').value;
+  if(!name){notify('⚠️ Inserisci un nome');return;}
+  if(db.channels.find(function(c){return c.id===name;})){notify('⚠️ Canale già esistente');return;}
+  await fb.setDoc(fb.doc(fb.db,'channels',name), {id:name,name:name,desc:desc,type:type,icon:type==='private'?'🔒':'#'});
+  document.getElementById('new-ch-name').value=''; document.getElementById('new-ch-desc').value='';
+  notify('✅ Canale #'+name+' creato');
+}
+async function deleteChannel(id){
+  if(!confirm('Eliminare #'+id+'?')) return;
+  await fb.deleteDoc(fb.doc(fb.db,'channels',id));
+  if(currentChannel===id) openChannel((getAccessibleChannels()[0]&&getAccessibleChannels()[0].id)||'generale');
+  notify('🗑️ Canale eliminato');
+}
+
+function renderNationsTable(){
+  const tb=document.getElementById('nations-tbody');
+  if(!db.nationsDB.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Nessuna nazione nel database</td></tr>';return;}
+  const scMap={'stabile':'badge-peace','guerra':'badge-war','crisi':'badge-dispute','inattiva':'badge-user'};
+  tb.innerHTML=db.nationsDB.map(function(n){
+    const sc=scMap[n.status]||'badge-user';
+    return '<tr><td><strong>'+n.name+'</strong></td><td>'+(n.gov||'—')+'</td>'+
+    '<td><span class="badge '+sc+'">'+n.status+'</span></td>'+
+    '<td style="font-size:12px">'+(n.ally||'—')+'</td>'+
+    '<td style="font-size:12px">'+(n.war||'—')+'</td>'+
+    '<td><button class="btn-danger" onclick="deleteNation(\''+n._id+'\')">×</button></td></tr>';
+  }).join('');
+}
+async function saveNationDB(){
+  const name=document.getElementById('nd-name').value.trim();
+  if(!name){notify('⚠️ Inserisci il nome della nazione');return;}
+  const n={name:name,gov:document.getElementById('nd-gov').value.trim(),pop:document.getElementById('nd-pop').value.trim(),res:document.getElementById('nd-res').value.trim(),terr:document.getElementById('nd-terr').value.trim(),ally:document.getElementById('nd-ally').value.trim(),war:document.getElementById('nd-war').value.trim(),status:document.getElementById('nd-status').value,notes:document.getElementById('nd-notes').value.trim(),updatedAt:Date.now()};
+  // Usa il nome nazione come ID documento (sanificato)
+  const docId = name.replace(/[\/\s]+/g,'_');
+  await fb.setDoc(fb.doc(fb.db,'nationsDB',docId), n);
+  notify('💾 Nazione salvata: '+name);
+  ['nd-name','nd-gov','nd-pop','nd-res','nd-terr','nd-ally','nd-war','nd-notes'].forEach(function(id){document.getElementById(id).value='';});
+}
+async function deleteNation(docId){ if(!confirm('Eliminare nazione?')) return; await fb.deleteDoc(fb.doc(fb.db,'nationsDB',docId)); }
+
+function renderTurnsTab(){
+  const cfg=db.turnConfig;
+  document.getElementById('turn-current').value=cfg.current;
+  document.getElementById('turn-duration').value=cfg.duration;
+  document.getElementById('turn-start').value=cfg.startISO?cfg.startISO.slice(0,16):'';
+  const list=document.getElementById('turn-actions-list');
+  const curr=db.turnActions.filter(function(a){return a.turn===cfg.current;});
+  if(!curr.length){list.innerHTML='<p style="color:var(--text-muted);font-size:13px">Nessuna azione ricevuta per questo turno.</p>';return;}
+  const icMap={'militare':'⚔️','diplomatica':'🤝','economica':'💰','costruzione':'🏗️'};
+  list.innerHTML=curr.map(function(a){
+    const ic=icMap[a.type]||'📋';
+    return '<div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:8px">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:16px">'+ic+'</span>'+
+      '<strong style="font-size:14px;color:var(--text-header)">'+a.nation+'</strong>'+
+      '<span class="badge badge-user">'+a.type+'</span>'+
+      '<span style="font-size:11px;color:var(--text-muted);margin-left:auto">'+(a.ts_human||'')+'</span></div>'+
+      '<p style="font-size:13px;color:var(--text-primary)">'+esc(a.desc)+'</p>'+
+      (a.coords?'<p style="font-size:12px;color:var(--text-muted)">📍 '+a.coords+'</p>':'')+
+      (a.resources?'<p style="font-size:12px;color:var(--text-muted)">💰 '+a.resources+'</p>':'')+
+    '</div>';
+  }).join('');
+}
+async function saveTurnConfig(){
+  const current=parseInt(document.getElementById('turn-current').value)||1;
+  const duration=parseInt(document.getElementById('turn-duration').value)||48;
+  const s=document.getElementById('turn-start').value;
+  const startISO = s ? new Date(s).toISOString() : db.turnConfig.startISO;
+  await fb.setDoc(fb.doc(fb.db,'config','turn'), { current, duration, startISO });
+  notify('✅ Configurazione turno salvata');
+}
+
+// ────────── LIMITE MESSAGGI AI GIORNALIERO ──────────
+
+// Calcola la chiave del "giorno AI" corrente. Il contatore si resetta alle 23:59:
+// spostando l'orario di 1 minuto avanti, il giorno cambia esattamente a quell'ora.
+function getTodayPeriodKey(){
+  const d = new Date(Date.now() + 60*1000);
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+day;
+}
+
+function getAiDailyLimit(){
+  return (db.aiLimitConfig && typeof db.aiLimitConfig.dailyLimit === 'number') ? db.aiLimitConfig.dailyLimit : 10;
+}
+
+// Quanti messaggi ha già usato l'utente oggi (0 se è un nuovo "giorno AI")
+function getUsedCountFor(username){
+  const u = db.aiUsage[username];
+  if (!u || u.periodKey !== getTodayPeriodKey()) return 0;
+  return u.count || 0;
+}
+
+// Verifica e, se consentito, incrementa atomicamente il contatore dell'utente corrente.
+// Ritorna true se il messaggio può essere inviato, false se il limite è stato raggiunto.
+async function canSendAiMessage(){
+  if (currentUser.role === 'admin') return true; // gli admin non sono soggetti al limite
+  const limit = getAiDailyLimit();
+  const todayKey = getTodayPeriodKey();
+  const ref = fb.doc(fb.db,'aiUsage',currentUser.username);
+  const snap = await fb.getDoc(ref);
+  let count = 0;
+  if (snap.exists() && snap.data().periodKey === todayKey) count = snap.data().count || 0;
+  if (count >= limit) return false;
+  await fb.setDoc(ref, { periodKey: todayKey, count: count+1, username: currentUser.username });
+  return true;
+}
+
+// Aggiorna il badge "Messaggi AI oggi" nel turn-panel
+function updateAiQuotaUI(){
+  const info = document.getElementById('ai-quota-info');
+  const txt = document.getElementById('ai-quota-text');
+  if (!info || !txt || !currentUser) return;
+  if (!currentChannel || !currentChannel.startsWith('ai_')) { info.style.display='none'; return; }
+  if (currentUser.role === 'admin') {
+    info.style.display='flex';
+    txt.textContent = 'illimitato (admin)';
+    return;
+  }
+  const limit = getAiDailyLimit();
+  const used = getUsedCountFor(currentUser.username);
+  const remaining = Math.max(0, limit - used);
+  info.style.display='flex';
+  txt.textContent = remaining+'/'+limit+' rimasti (si resetta alle 23:59)';
+}
+
+// Ascolta in tempo reale il documento di utilizzo dell'utente loggato, per aggiornare il badge
+function attachAiUsageListener(){
+  if (activeAiUsageUnsub) { activeAiUsageUnsub(); activeAiUsageUnsub=null; }
+  if (!currentUser || currentUser.role === 'admin') { updateAiQuotaUI(); return; }
+  activeAiUsageUnsub = fb.onSnapshot(fb.doc(fb.db,'aiUsage',currentUser.username), snap => {
+    db.aiUsage[currentUser.username] = snap.exists() ? snap.data() : null;
+    updateAiQuotaUI();
+  });
+}
+
+async function saveAiLimitConfig(){
+  const dailyLimit = parseInt(document.getElementById('ai-limit-input').value);
+  if (isNaN(dailyLimit) || dailyLimit < 0) { notify('⚠️ Inserisci un numero valido (0 o superiore).'); return; }
+  await fb.setDoc(fb.doc(fb.db,'config','aiLimit'), { dailyLimit });
+  notify('✅ Limite messaggi AI salvato: '+dailyLimit+'/giorno');
+}
+
+function renderAiLimitTab(){
+  const input = document.getElementById('ai-limit-input');
+  if (input && document.activeElement !== input) input.value = getAiDailyLimit();
+  const tbody = document.getElementById('ai-usage-tbody');
+  if (!tbody) return;
+  const todayKey = getTodayPeriodKey();
+  const players = Object.values(db.users).filter(u=>u.role!=='admin');
+  if (!players.length) { tbody.innerHTML='<tr><td colspan="3" style="color:var(--text-muted)">Nessun giocatore registrato.</td></tr>'; return; }
+  tbody.innerHTML = players.map(function(u){
+    const usage = db.aiUsage[u.username];
+    const used = (usage && usage.periodKey===todayKey) ? (usage.count||0) : 0;
+    const limit = getAiDailyLimit();
+    return '<tr><td>'+u.username+'</td><td>'+used+'/'+limit+'</td>'+
+      '<td><button class="btn-sm" style="padding:4px 10px;font-size:12px" onclick="resetAiUsage(\''+u.username.replace(/'/g,"\\'")+'\')">↺ Azzera</button></td></tr>';
+  }).join('');
+}
+
+async function resetAiUsage(username){
+  await fb.setDoc(fb.doc(fb.db,'aiUsage',username), { periodKey: getTodayPeriodKey(), count: 0, username });
+  notify('✅ Contatore AI azzerato per '+username);
+}
+
+function renderMapVersions(){
+  const el=document.getElementById('map-versions-list');
+  if(!db.mapVersions.length){el.innerHTML='<p style="color:var(--text-muted);font-size:13px">Nessuna versione registrata.</p>';return;}
+  const rev=db.mapVersions.slice().sort((a,b)=>tsToMillis(b.ts)-tsToMillis(a.ts));
+  el.innerHTML=rev.map(function(v){
+    return '<div class="map-ver-card"><div class="map-ver-num">T'+v.turn+'</div>'+
+    '<div class="map-ver-info"><div class="map-ver-title">📄 '+v.file+'</div>'+
+    '<div class="map-ver-meta">'+formatDate(tsToMillis(v.ts))+' · Turno '+v.turn+'</div>'+
+    (v.changes?'<div style="font-size:12px;color:var(--text-secondary);margin-top:4px">'+esc(v.changes)+'</div>':'')+
+    '</div><button class="btn-danger" onclick="deleteMapVer(\''+v._id+'\')">×</button></div>';
+  }).join('');
+}
+async function saveMapVersion(){
+  const turn=parseInt(document.getElementById('mv-turn').value)||db.turnConfig.current;
+  const padded=String(turn).length<3?('00'+turn).slice(-3):String(turn);
+  const file=document.getElementById('mv-file').value.trim()||('mappa_turno_'+padded+'.png');
+  const changes=document.getElementById('mv-changes').value.trim();
+  await fb.addDoc(fb.collection(fb.db,'mapVersions'), {turn:turn,file:file,changes:changes,ts:Date.now()});
+  document.getElementById('mv-file').value=''; document.getElementById('mv-changes').value='';
+  notify('🗾 Versione mappa salvata: '+file);
+}
+async function deleteMapVer(docId){ await fb.deleteDoc(fb.doc(fb.db,'mapVersions',docId)); }
+
+function renderAdminsTab(){
+  const admins=Object.values(db.users).filter(function(u){return u.role==='admin';});
+  const non=Object.values(db.users).filter(function(u){return u.role!=='admin';});
+  document.getElementById('promote-select').innerHTML=non.length?non.map(function(u){return '<option value="'+u.username+'">'+u.username+'</option>';}).join(''):'<option value="">Nessun membro</option>';
+  document.getElementById('admins-tbody').innerHTML=admins.map(function(u){
+    return '<tr><td><div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:50%;background:#f0b232;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">'+getInitials(u.username)+'</div>'+u.username+'</div></td>'+
+    '<td>'+(u.username!==currentUser.username?'<button class="btn-danger" onclick="demoteAdmin(\''+u.username+'\')">Rimuovi Admin</button>':'<span style="color:var(--text-muted);font-size:12px">Tu</span>')+'</td></tr>';
+  }).join('');
+}
+async function promoteUser(){
+  const v=document.getElementById('promote-select').value;
+  if(!v){notify('⚠️ Nessun utente selezionato');return;}
+  await fb.updateDoc(fb.doc(fb.db,'users',v), { role:'admin', nation:'👑 Admin', nationColor:'#f0b232' });
+  notify('👑 '+v+' è ora Admin');
+}
+async function demoteAdmin(un){
+  if(!confirm('Rimuovere admin da '+un+'?')) return;
+  await fb.updateDoc(fb.doc(fb.db,'users',un), { role:'user', nation:null, nationColor:null });
+  notify('✅ Admin rimosso per '+un);
+}
+
+function renderLaunchChecklist(){
+  const ul=document.getElementById('launch-checklist');
+  ul.innerHTML=db.launchChecklist.map(function(item,i){
+    return '<li class="'+(item.done?'done':'')+'" onclick="toggleChecklist('+i+')"><span class="check-icon">'+(item.done?'✅':'⬜')+'</span><span>'+item.label+'</span></li>';
+  }).join('');
+}
+async function toggleChecklist(i){
+  const items = db.launchChecklist.map((it,idx)=> idx===i ? {...it, done: !it.done} : it);
+  await fb.setDoc(fb.doc(fb.db,'config','launchChecklist'), { items });
+}
+
+// ════════════════════════════════════════════════
+//  OVERLAY HELPERS
+// ════════════════════════════════════════════════
+function openOverlay(id){ document.getElementById(id).style.display='flex'; }
+function closeOverlay(id){ document.getElementById(id).style.display='none'; }
+document.querySelectorAll('.overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===this)this.style.display='none';});});
+
+// ════════════════════════════════════════════════
+//  NOTIFICATION
+// ════════════════════════════════════════════════
+let nTimer;
+function notify(m){
+  const el=document.getElementById('notification'); el.textContent=m; el.style.display='block';
+  clearTimeout(nTimer); nTimer=setTimeout(function(){el.style.display='none';},3000);
+}
+</script>
+</body>
+</html>
